@@ -51,14 +51,14 @@ func main() {
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		fmt.Fprintf(os.Stderr, "error opening connection: %s\n", err)
 		return
 	}
 	defer dg.Close()
 
 	channel, err := dg.UserChannelCreate(UserID)
 	if err != nil {
-		fmt.Println("error creating DM channel:", err)
+		fmt.Fprintf(os.Stderr, "error creating DM channel: %s\n", err)
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -66,14 +66,13 @@ func main() {
 		line := scanner.Text()
 		m, err := dg.ChannelMessageSend(channel.ID, line)
 		if err != nil {
-			os.Stderr.WriteString("Error sending a DM: " + err.Error())
+			fmt.Fprintf(os.Stderr, "Error sending message: %s\n", err)
 		}
 
 		unresolvedMsgs[m.ID] = line
 	}
 
 	// Wait here until CTRL-C or other term signal is received.
-	fmt.Println("Bot is now running. Press CTRL-C to exit.")
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 }
@@ -86,20 +85,20 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// We create the private channel with the user who sent the message.
 	channel, err := s.UserChannelCreate(m.Author.ID)
 	if err != nil {
-		os.Stderr.WriteString("error creating channel: " + err.Error())
+		fmt.Fprintf(os.Stderr, "error creating channel: %s\n", err)
 		return
 	}
 	// Then we send the message through the channel we created.
 	_, err = s.ChannelMessageSend(channel.ID, "Pong!")
 	if err != nil {
-		os.Stderr.WriteString("error sending DM message: " + err.Error())
+		fmt.Fprintf(os.Stderr, "error sending DM message: %s\n", err)
 	}
 }
 
 func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	msg, ok := unresolvedMsgs[r.MessageID]
 	if !ok {
-		fmt.Fprintf(os.Stderr, "Message %s not found in unresolved messages", r.MessageID)
+		fmt.Fprintf(os.Stderr, "Skipping message %s: not found in unresolved messages\n", r.MessageID)
 		return
 	}
 
