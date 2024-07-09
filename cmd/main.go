@@ -13,6 +13,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const WatchEmoji = "👀"
+
 // Variables used for command line parameters
 var (
 	Token     string
@@ -56,7 +58,8 @@ func main() {
 	dg.Identify.Intents = discordgo.IntentsGuildMessages |
 		discordgo.IntentsDirectMessages |
 		discordgo.IntentsGuildMessageReactions |
-		discordgo.IntentsDirectMessageReactions
+		discordgo.IntentsDirectMessageReactions |
+		discordgo.PermissionAddReactions
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -77,6 +80,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
 		}
+		dg.MessageReactionAdd(channel.ID, m.ID, WatchEmoji)
 
 		unresolvedMsgs[m.ID] = line
 	}
@@ -85,6 +89,10 @@ func main() {
 	slog.Debug("Bot is now running.  Press CTRL-C to exit.")
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
+
+	for messageID := range unresolvedMsgs {
+		dg.MessageReactionRemove(channel.ID, messageID, WatchEmoji, "@me")
+	}
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -106,6 +114,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	// Skip if the reaction is from the bot
+	if r.UserID == s.State.User.ID {
+		return
+	}
+
 	msg, ok := unresolvedMsgs[r.MessageID]
 	if !ok {
 		slog.Info("Message not found in unresolved messages, skipping", "messageID", r.MessageID)
@@ -114,6 +127,7 @@ func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 
 	fmt.Fprintf(os.Stdout, "%s%s%s", msg, Separator, r.Emoji.Name)
 
+	s.MessageReactionRemove(r.ChannelID, r.MessageID, WatchEmoji, "@me")
 	delete(unresolvedMsgs, r.MessageID)
 	if len(unresolvedMsgs) == 0 {
 		sc <- syscall.SIGTERM
