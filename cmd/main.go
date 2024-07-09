@@ -11,7 +11,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/erykksc/notifr/internal/providers"
 	"github.com/erykksc/notifr/internal/utils"
 )
 
@@ -48,36 +48,12 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &logOptions))
 	slog.SetDefault(logger)
 
-	// Create a new Discord session using the provided bot token.
-	dg, err := discordgo.New("Bot " + Token)
-	if err != nil {
-		log.Fatalf("error creating Discord session: %s", err)
-	}
+	discordP := providers.CreateDiscord(Token, UserID)
 
-	// Register the messageCreate func as a callback for MessageCreate events.
-	dg.AddHandler(messageCreate)
-
-	dg.AddHandler(reactionAdd)
-
-	// Just like the ping pong example, we only care about receiving message
-	// events in this example.
-	dg.Identify.Intents = discordgo.IntentsGuildMessages |
-		discordgo.IntentsDirectMessages |
-		discordgo.IntentsGuildMessageReactions |
-		discordgo.IntentsDirectMessageReactions |
-		discordgo.PermissionAddReactions
-
-	// Open a websocket connection to Discord and begin listening.
-	err = dg.Open()
-	if err != nil {
-		log.Fatalf("error opening connection: %s", err)
-	}
-	defer dg.Close()
-
-	channel, err := dg.UserChannelCreate(UserID)
-	if err != nil {
-		log.Fatalf("error creating DM channel: %s", err)
-	}
+	var provider providers.MsgProvider
+	provider = &discordP
+	provider.Init()
+	defer provider.Close()
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(utils.SplitBySeparator([]byte(MsgSeparator)))
@@ -86,61 +62,51 @@ func main() {
 		if len(line) == 0 {
 			continue
 		}
-		m, err := dg.ChannelMessageSend(channel.ID, line)
+		m, err := provider.SendMessage(line)
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
 		}
-		dg.MessageReactionAdd(channel.ID, m.ID, WatchEmoji)
+		err = provider.AddReaction(m.ID, WatchEmoji)
+		if err != nil {
+			log.Fatalf("error adding reaction: %s", err)
+		}
 
 		unresolvedMsgs[m.ID] = line
 	}
 
 	// Wait here until CTRL-C or other term signal is received.
-	slog.Debug("Bot is now running.  Press CTRL-C to exit.")
+	slog.Info("Bot is now running.  Press CTRL-C to exit.")
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	<-sc
+
+EventsLoop:
+	for len(unresolvedMsgs) > 0 {
+		select {
+		case msg := <-provider.ListenToMessages():
+			slog.Debug("handling message", "message", msg.Content)
+			provider.SendMessage(msg.Content)
+		case reaction := <-provider.ListenToReactions():
+			slog.Debug("handling reaction", "reaction", reaction.Content)
+			msg, ok := unresolvedMsgs[reaction.MessageID]
+			if !ok {
+				slog.Info("message not found in unresolved messages, skipping", "messageID", reaction.MessageID)
+				return
+			}
+
+			outputMsg(msg, reaction.Content)
+
+			provider.RemoveReaction(reaction.MessageID, WatchEmoji)
+			delete(unresolvedMsgs, reaction.MessageID)
+			if len(unresolvedMsgs) == 0 {
+				sc <- syscall.SIGTERM
+			}
+		case <-sc:
+			slog.Info("shutting down...")
+			break EventsLoop
+		}
+	}
 
 	for messageID := range unresolvedMsgs {
-		dg.MessageReactionRemove(channel.ID, messageID, WatchEmoji, "@me")
-	}
-}
-
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-	if m.Author.ID == s.State.User.ID {
-		return
-	}
-
-	// We create the private channel with the user who sent the message.
-	channel, err := s.UserChannelCreate(m.Author.ID)
-	if err != nil {
-		slog.Error("error creating channel", "error", err)
-		return
-	}
-	// Then we send the message through the channel we created.
-	_, err = s.ChannelMessageSend(channel.ID, "Pong!")
-	if err != nil {
-		slog.Error("error sending DM message", "error", err)
-	}
-}
-
-func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
-	// Skip if the reaction is from the bot
-	if r.UserID == s.State.User.ID {
-		return
-	}
-
-	msg, ok := unresolvedMsgs[r.MessageID]
-	if !ok {
-		slog.Info("Message not found in unresolved messages, skipping", "messageID", r.MessageID)
-		return
-	}
-
-	outputMsg(msg, r.Emoji.Name)
-
-	s.MessageReactionRemove(r.ChannelID, r.MessageID, WatchEmoji, "@me")
-	delete(unresolvedMsgs, r.MessageID)
-	if len(unresolvedMsgs) == 0 {
-		sc <- syscall.SIGTERM
+		provider.RemoveReaction(messageID, WatchEmoji)
 	}
 }
 
