@@ -8,26 +8,32 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/erykksc/notifr/internal/utils"
 )
 
 const WatchEmoji = "👀"
 
 // Variables used for command line parameters
 var (
-	Token     string
-	UserID    string
-	Separator string
-	Verbose   bool
+	Token        string
+	UserID       string
+	Separator    string
+	MsgSeparator string
+	OutSeparator string
+	Verbose      bool
 )
 var sc = make(chan os.Signal, 1)
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.StringVar(&UserID, "u", "", "User's discord ID")
-	flag.StringVar(&Separator, "s", ":::", "Separator between message and emoji")
+	flag.StringVar(&Separator, "s", ":", "Separator between message and emoji")
+	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
+	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
 }
@@ -74,8 +80,12 @@ func main() {
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(utils.SplitBySeparator([]byte(MsgSeparator)))
 	for scanner.Scan() {
 		line := scanner.Text()
+		if len(line) == 0 {
+			continue
+		}
 		m, err := dg.ChannelMessageSend(channel.ID, line)
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
@@ -125,11 +135,21 @@ func reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 		return
 	}
 
-	fmt.Fprintf(os.Stdout, "%s%s%s", msg, Separator, r.Emoji.Name)
+	outputMsg(msg, r.Emoji.Name)
 
 	s.MessageReactionRemove(r.ChannelID, r.MessageID, WatchEmoji, "@me")
 	delete(unresolvedMsgs, r.MessageID)
 	if len(unresolvedMsgs) == 0 {
 		sc <- syscall.SIGTERM
 	}
+}
+
+func outputMsg(originalMsg, reaction string) {
+	b := strings.Builder{}
+	b.WriteString(originalMsg)
+	b.WriteString(Separator)
+	b.WriteString(reaction)
+	b.WriteString(OutSeparator)
+
+	fmt.Fprint(os.Stdout, b.String())
 }
