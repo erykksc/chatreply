@@ -26,7 +26,6 @@ var (
 	OutSeparator string
 	Verbose      bool
 )
-var sc = make(chan os.Signal, 1)
 
 func init() {
 	flag.StringVar(&Token, "t", "", "Bot Token")
@@ -41,6 +40,7 @@ func init() {
 var unresolvedMsgs = make(map[string]string)
 
 func main() {
+	// Setup logging
 	logOptions := slog.HandlerOptions{}
 	if Verbose {
 		logOptions.Level = slog.LevelDebug
@@ -48,13 +48,14 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &logOptions))
 	slog.SetDefault(logger)
 
+	// Setup provider
 	discordP := providers.CreateDiscord(Token, UserID)
-
 	var provider providers.MsgProvider
 	provider = &discordP
 	provider.Init()
 	defer provider.Close()
 
+	// Send messages and add watch reactions
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(utils.SplitBySeparator([]byte(MsgSeparator)))
 	for scanner.Scan() {
@@ -74,40 +75,46 @@ func main() {
 		unresolvedMsgs[m.ID] = line
 	}
 
-	// Wait here until CTRL-C or other term signal is received.
 	slog.Info("Bot is now running.  Press CTRL-C to exit.")
+	var sc = make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
+	// Wait here until:
+	// * All messages get reactions
+	// * CTRL-C or other term signal is received.
 EventsLoop:
 	for len(unresolvedMsgs) > 0 {
 		select {
 		case msg := <-provider.ListenToMessages():
+			// For now this just echoes the user
 			slog.Debug("handling message", "message", msg.Content)
 			provider.SendMessage(msg.Content)
 		case reaction := <-provider.ListenToReactions():
-			slog.Debug("handling reaction", "reaction", reaction.Content)
-			msg, ok := unresolvedMsgs[reaction.MessageID]
-			if !ok {
-				slog.Info("message not found in unresolved messages, skipping", "messageID", reaction.MessageID)
-				return
-			}
-
-			outputMsg(msg, reaction.Content)
-
-			provider.RemoveReaction(reaction.MessageID, WatchEmoji)
-			delete(unresolvedMsgs, reaction.MessageID)
-			if len(unresolvedMsgs) == 0 {
-				sc <- syscall.SIGTERM
-			}
+			onNewReaction(provider, reaction)
 		case <-sc:
 			slog.Info("shutting down...")
 			break EventsLoop
 		}
 	}
 
+	// Cleanup unresolved Messages
 	for messageID := range unresolvedMsgs {
 		provider.RemoveReaction(messageID, WatchEmoji)
 	}
+}
+
+func onNewReaction(p providers.MsgProvider, r providers.Reaction) {
+	slog.Debug("handling r", "r", r.Content)
+	msg, ok := unresolvedMsgs[r.MessageID]
+	if !ok {
+		slog.Info("message not found in unresolved messages, skipping", "messageID", r.MessageID)
+		return
+	}
+
+	outputMsg(msg, r.Content)
+
+	p.RemoveReaction(r.MessageID, WatchEmoji)
+	delete(unresolvedMsgs, r.MessageID)
 }
 
 func outputMsg(originalMsg, reaction string) {
