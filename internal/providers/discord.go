@@ -97,10 +97,15 @@ func (d *Discord) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate
 		return
 	}
 
+	var refMsgID string
+	if m.ReferencedMessage != nil {
+		refMsgID = m.ReferencedMessage.ID
+	}
+
 	msg := Message{
 		ID:              m.ID,
 		ChannelID:       m.ChannelID,
-		ReferencedMsgID: m.ReferencedMessage.ID,
+		ReferencedMsgID: refMsgID,
 		Content:         m.Content,
 	}
 
