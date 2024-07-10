@@ -8,9 +8,11 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 
+	"github.com/erykksc/notifr/internal/configuration"
 	"github.com/erykksc/notifr/internal/providers"
 	"github.com/erykksc/notifr/internal/utils"
 )
@@ -48,10 +50,18 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &logOptions))
 	slog.SetDefault(logger)
 
-	// Setup provider
-	discordP := providers.CreateDiscord(Token, UserID)
-	var provider providers.MsgProvider
-	provider = &discordP
+	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+	configPath := filepath.Join(xdgConfigHome, "notifr", "conf.toml")
+	config, err := configuration.LoadConfiguration(configPath)
+	if err != nil {
+		log.Fatalf("error loading configuration: %s", err)
+	}
+
+	provider, err := providers.CreateProvider(config)
+	if err != nil {
+		log.Fatalf("error creating provider: %s", err)
+	}
+
 	provider.Init()
 	defer provider.Close()
 
