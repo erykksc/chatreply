@@ -12,9 +12,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/erykksc/notifr/internal/configuration"
-	"github.com/erykksc/notifr/internal/providers"
-	"github.com/erykksc/notifr/internal/utils"
+	"github.com/erykksc/chatreply/internal/configuration"
+	"github.com/erykksc/chatreply/internal/providers"
+	"github.com/erykksc/chatreply/internal/utils"
 )
 
 const WatchEmoji = "👀"
@@ -51,7 +51,7 @@ func main() {
 	slog.SetDefault(logger)
 
 	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
-	configPath := filepath.Join(xdgConfigHome, "notifr", "conf.toml")
+	configPath := filepath.Join(xdgConfigHome, "chatreply", "conf.toml")
 	config, err := configuration.LoadConfiguration(configPath)
 	if err != nil {
 		log.Fatalf("error loading configuration: %s", err)

@@ -3,7 +3,7 @@ package providers
 import (
 	"errors"
 
-	"github.com/erykksc/notifr/internal/configuration"
+	"github.com/erykksc/chatreply/internal/configuration"
 )
 
 func CreateProvider(config configuration.Configuration) (MsgProvider, error) {

@@ -1,4 +1,4 @@
-module github.com/erykksc/notifr
+module github.com/erykksc/chatreply
 
 go 1.22.5
 
