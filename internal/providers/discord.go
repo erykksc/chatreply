@@ -98,9 +98,10 @@ func (d *Discord) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate
 	}
 
 	msg := Message{
-		ID:        m.ID,
-		ChannelID: m.ChannelID,
-		Content:   m.Content,
+		ID:              m.ID,
+		ChannelID:       m.ChannelID,
+		ReferencedMsgID: m.ReferencedMessage.ID,
+		Content:         m.Content,
 	}
 
 	d.MessageChannel <- msg

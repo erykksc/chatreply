@@ -86,9 +86,7 @@ EventsLoop:
 	for len(unresolvedMsgs) > 0 {
 		select {
 		case msg := <-provider.ListenToMessages():
-			// For now this just echoes the user
-			slog.Debug("handling message", "message", msg.Content)
-			provider.SendMessage(msg.Content)
+			onNewMessage(provider, msg)
 		case reaction := <-provider.ListenToReactions():
 			onNewReaction(provider, reaction)
 		case <-sc:
@@ -101,6 +99,25 @@ EventsLoop:
 	for messageID := range unresolvedMsgs {
 		provider.RemoveReaction(messageID, WatchEmoji)
 	}
+}
+
+func onNewMessage(_ providers.MsgProvider, msg providers.Message) {
+	slog.Debug("handling msg", "msg", msg.Content)
+
+	// Check if referenced
+	if msg.ReferencedMsgID == "" {
+		slog.Info("message does not reference another message, skipping", "messageID", msg.ID)
+		return
+	}
+
+	// Get referenced message
+	refMsg, ok := unresolvedMsgs[msg.ReferencedMsgID]
+	if !ok {
+		slog.Info("message not found in unresolved messages, skipping", "messageID", msg.ID)
+		return
+	}
+
+	outputMsg(refMsg, msg.Content)
 }
 
 func onNewReaction(p providers.MsgProvider, r providers.Reaction) {

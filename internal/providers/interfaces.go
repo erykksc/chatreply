@@ -1,9 +1,10 @@
 package providers
 
 type Message struct {
-	ID        string
-	ChannelID string
-	Content   string
+	ID              string
+	ChannelID       string
+	ReferencedMsgID string
+	Content         string
 }
 
 type Reaction struct {
