@@ -46,6 +46,8 @@ func main() {
 	logOptions := slog.HandlerOptions{}
 	if Verbose {
 		logOptions.Level = slog.LevelDebug
+	} else {
+		logOptions.Level = slog.LevelWarn
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &logOptions))
 	slog.SetDefault(logger)
