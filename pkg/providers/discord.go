@@ -94,7 +94,6 @@ func (d *Discord) SendMessage(msg string, asString bool) (sentMsgID string, err 
 	handlers["image/jpeg"] = d.SendImageMessage
 	handlers["image/png"] = d.SendImageMessage
 	handlers["image/gif"] = d.SendImageMessage
-	handlers["image/bmp"] = d.SendImageMessage
 	handlers["image/webp"] = d.SendImageMessage
 
 	ext := filepath.Ext(msg)
