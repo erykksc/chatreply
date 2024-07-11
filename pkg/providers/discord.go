@@ -87,10 +87,15 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 	return d.reactionChannel
 }
 
-func (d *Discord) SendMessage(msg string, asText bool) (sentMsgID string, err error) {
+func (d *Discord) SendMessage(msg string, asString bool) (sentMsgID string, err error) {
 	// Register handlers
 	handlers := make(map[string]func(text string) (sentMsgID string, err error))
-	handlers[""] = d.SendTextMessage
+	handlers[""] = d.SendStringHandler
+	handlers["image/jpeg"] = d.SendImageMessage
+	handlers["image/png"] = d.SendImageMessage
+	handlers["image/gif"] = d.SendImageMessage
+	handlers["image/bmp"] = d.SendImageMessage
+	handlers["image/webp"] = d.SendImageMessage
 
 	ext := filepath.Ext(msg)
 	contentType := mime.TypeByExtension(ext)
@@ -100,11 +105,11 @@ func (d *Discord) SendMessage(msg string, asText bool) (sentMsgID string, err er
 	// Default fallback handler
 	if !ok {
 		slog.Debug("no handler found for content type, falling back to text", "contentType", contentType)
-		handler = d.SendTextMessage
+		handler = d.SendStringHandler
 	}
-	if asText {
-		slog.Debug("forcing text handler")
-		handler = d.SendTextMessage
+	if asString {
+		slog.Debug("forcing string handler")
+		handler = d.SendStringHandler
 	}
 
 	// Use chosen handler
