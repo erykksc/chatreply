@@ -26,6 +26,7 @@ var (
 	SkipReplies  bool
 	WatchEmoji   string
 	TextOnlyMsgs bool
+	RepliesCount int
 	Verbose      bool
 )
 
@@ -38,6 +39,7 @@ func init() {
 	flag.BoolVar(&SkipReplies, "skip-replies", false, "Do not wait for replies, just send the messages")
 	flag.StringVar(&WatchEmoji, "watch-emoji", "👀", "Emoji used to indicate the program is watching the message for a reply")
 	flag.BoolVar(&TextOnlyMsgs, "text-only", false, "Make all messages text only, disable trying to parse messages as multimedia")
+	flag.IntVar(&RepliesCount, "replies-count", 1, "Number of replies to wait per message for before exiting, -1 will wait indefinitely, allowing multiple replies per message")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
 
@@ -45,9 +47,20 @@ func init() {
 		xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
 		ConfigPath = filepath.Join(xdgConfigHome, "chatreply", "conf.toml")
 	}
+
+	if RepliesCount == 0 {
+		slog.Error("replies-count can't be 0")
+		os.Exit(-1)
+	}
 }
 
-var unresolvedMsgs = make(map[string]string)
+type UnresolvedMsg struct {
+	MsgContent       string
+	RepliesCollected int
+}
+
+// Map: MessageID -> UnresolvedMsg
+var unresolvedMsgs = make(map[string]*UnresolvedMsg)
 
 func main() {
 	// Setup logging
@@ -95,7 +108,9 @@ func main() {
 			log.Fatalf("error adding reaction: %s", err)
 		}
 
-		unresolvedMsgs[msgID] = line
+		unresolvedMsgs[msgID] = &UnresolvedMsg{
+			MsgContent: line,
+		}
 	}
 
 	// Don't wait for replies if the flag is on
@@ -158,15 +173,26 @@ func onReply(p providers.MsgProvider, reply Reply) {
 		return
 	}
 	b := strings.Builder{}
-	b.WriteString(unresolvedMsg)
+	b.WriteString(unresolvedMsg.MsgContent)
 	b.WriteString(Separator)
 	b.WriteString(reply.Content)
 	b.WriteString(OutSeparator)
 
 	fmt.Fprint(os.Stdout, b.String())
 
-	delete(unresolvedMsgs, reply.RefMsgID)
+	unresolvedMsg.RepliesCollected++
 
+	// Check if collect replies indefinitely
+	if RepliesCount == -1 {
+		return
+	}
+
+	// If not collected enough replies
+	if unresolvedMsg.RepliesCollected < RepliesCount {
+		return
+	}
+
+	delete(unresolvedMsgs, reply.RefMsgID)
 	err := p.RemoveReaction(reply.RefMsgID, WatchEmoji)
 	if err != nil {
 		slog.Error("error removing reaction", "error", err, "messageID", reply.RefMsgID, "reaction", WatchEmoji)
