@@ -111,12 +111,12 @@ func main() {
 EventsLoop:
 	for len(unresolvedMsgs) > 0 {
 		select {
-		case msg := <-provider.ListenToMessages():
+		case msg := <-provider.MessagesChannel():
 			onReply(provider, Reply{
 				RefMsgID: msg.ReferencedMsgID,
 				Content:  msg.Content,
 			})
-		case reaction := <-provider.ListenToReactions():
+		case reaction := <-provider.ReactionsChannel():
 			onReply(provider, Reply{
 				RefMsgID: reaction.MessageID,
 				Content:  reaction.Content,

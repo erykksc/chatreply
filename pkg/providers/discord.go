@@ -29,7 +29,7 @@ func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
 
 // Discord is a struct implementing MsgProvider interface
 type Discord struct {
-	s               *discordgo.Session
+	S               *discordgo.Session
 	UserChannel     *discordgo.Channel
 	messageChannel  chan Message
 	reactionChannel chan Reaction
@@ -42,26 +42,26 @@ func (d *Discord) Init() error {
 	if err != nil {
 		return err
 	}
-	d.s = session
+	d.S = session
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	d.s.AddHandler(d.messageCreate)
-	d.s.AddHandler(d.reactionAdd)
+	d.S.AddHandler(d.messageCreate)
+	d.S.AddHandler(d.reactionAdd)
 
-	d.s.Identify.Intents = discordgo.IntentsGuildMessages |
+	d.S.Identify.Intents = discordgo.IntentsGuildMessages |
 		discordgo.IntentsDirectMessages |
 		discordgo.IntentsGuildMessageReactions |
 		discordgo.IntentsDirectMessageReactions |
 		discordgo.PermissionAddReactions
 
 	// Open a websocket connection to Discord and begin listening.
-	err = d.s.Open()
+	err = d.S.Open()
 	if err != nil {
 		slog.Error("error opening connection", "error", err)
 		return err
 	}
 
-	channel, err := d.s.UserChannelCreate(d.UserID)
+	channel, err := d.S.UserChannelCreate(d.UserID)
 	if err != nil {
 		slog.Error("error creating DM channel", "error", err)
 		return err
@@ -74,7 +74,7 @@ func (d *Discord) Init() error {
 func (d *Discord) Close() {
 	close(d.messageChannel)
 	close(d.reactionChannel)
-	d.s.Close()
+	d.S.Close()
 }
 
 func (d *Discord) MessagesChannel() chan Message {
@@ -86,7 +86,7 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 }
 
 func (d *Discord) SendMessage(msg string) (sentMsg Message, err error) {
-	m, err := d.s.ChannelMessageSend(d.UserChannel.ID, msg)
+	m, err := d.S.ChannelMessageSend(d.UserChannel.ID, msg)
 	if err != nil {
 		return Message{}, err
 	}
@@ -96,11 +96,11 @@ func (d *Discord) SendMessage(msg string) (sentMsg Message, err error) {
 	}, nil
 }
 func (d *Discord) AddReaction(msgID, reaction string) error {
-	err := d.s.MessageReactionAdd(d.UserChannel.ID, msgID, reaction)
+	err := d.S.MessageReactionAdd(d.UserChannel.ID, msgID, reaction)
 	return err
 }
 func (d *Discord) RemoveReaction(msgID, reaction string) error {
-	err := d.s.MessageReactionRemove(d.UserChannel.ID, msgID, reaction, "@me")
+	err := d.S.MessageReactionRemove(d.UserChannel.ID, msgID, reaction, "@me")
 	return err
 }
 
