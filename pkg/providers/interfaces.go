@@ -2,14 +2,14 @@ package providers
 
 type Message struct {
 	ID              string
-	ChannelID       string
+	ChatID          string
 	ReferencedMsgID string
 	Content         string
 }
 
 type Reaction struct {
 	MessageID string
-	ChannelID string
+	ChatID    string
 	Content   string
 }
 

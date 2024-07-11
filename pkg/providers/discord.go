@@ -141,7 +141,7 @@ func (d *Discord) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCrea
 
 	msg := Message{
 		ID:              m.ID,
-		ChannelID:       m.ChannelID,
+		ChatID:          m.ChannelID,
 		ReferencedMsgID: refMsgID,
 		Content:         m.Content,
 	}
@@ -158,7 +158,7 @@ func (d *Discord) onReactionAdd(s *discordgo.Session, r *discordgo.MessageReacti
 
 	reaction := Reaction{
 		MessageID: r.MessageID,
-		ChannelID: r.ChannelID,
+		ChatID:    r.ChannelID,
 		Content:   r.Emoji.Name,
 	}
 
