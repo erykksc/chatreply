@@ -63,6 +63,8 @@ echo "./images/orange.png" | chatreply
 will make __chatreply__ try to open "./images/orange.png" file and send it as an attachment to the chat.  
 On the output it will still be just text.
 
+__Tip: You can disable this behaviour using a "-text-only" flag__
+
 ### Example
 Discord view
 
