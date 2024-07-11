@@ -8,6 +8,8 @@ import (
 	"github.com/erykksc/chatreply/pkg/configuration"
 )
 
+// CreateDiscord is a factory function implementing ProviderFactoryFunc signature
+// It is used by CreateProvider
 func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
 	if conf.Discord.Token == "" {
 		return nil, errors.New("discord token not provided")
@@ -25,6 +27,7 @@ func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
 	}, nil
 }
 
+// Discord is a struct implementing MsgProvider interface
 type Discord struct {
 	s               *discordgo.Session
 	UserChannel     *discordgo.Channel

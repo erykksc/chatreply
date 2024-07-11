@@ -16,6 +16,7 @@ type Configuration struct {
 	}
 }
 
+// LoadConfiguration loads a configuration from a .toml file
 func LoadConfiguration(path string) (Configuration, error) {
 	config := Configuration{}
 

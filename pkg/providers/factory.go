@@ -6,7 +6,7 @@ import (
 	"github.com/erykksc/chatreply/pkg/configuration"
 )
 
-// Every provider should implement this function signature
+// Every MsgProvider should have a function that implement this signature
 type ProviderFactoryFunc func(configuration.Configuration) (MsgProvider, error)
 
 // CreateProvider is a MsgProvider factory function
