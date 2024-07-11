@@ -12,9 +12,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/erykksc/chatreply/internal/configuration"
-	"github.com/erykksc/chatreply/internal/providers"
-	"github.com/erykksc/chatreply/internal/utils"
+	"github.com/erykksc/chatreply/pkg/configuration"
+	"github.com/erykksc/chatreply/pkg/providers"
+	"github.com/erykksc/chatreply/pkg/utils"
 )
 
 const WatchEmoji = "👀"

@@ -3,7 +3,7 @@ package providers
 import (
 	"errors"
 
-	"github.com/erykksc/chatreply/internal/configuration"
+	"github.com/erykksc/chatreply/pkg/configuration"
 )
 
 // Every provider should implement this function signature

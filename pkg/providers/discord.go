@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/erykksc/chatreply/internal/configuration"
+	"github.com/erykksc/chatreply/pkg/configuration"
 )
 
 func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
