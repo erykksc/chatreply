@@ -1,3 +1,12 @@
+# ChatReply
+
+## Example usage
+
+```bash
+echo "React to this message\!" | go run chatreply.go
+```
+
+## Configuration
 You need to specify the providers and their configuration in
 `$XDG_CONFIG_HOME/chatreply/conf.toml`
 
