@@ -7,14 +7,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type ProviderEnum string
-
-const (
-	Discord ProviderEnum = "discord"
-)
-
 type Configuration struct {
-	ActiveProviders []ProviderEnum
+	ActiveProvider string
 
 	Discord struct {
 		UserID string

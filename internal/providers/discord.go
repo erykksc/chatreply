@@ -1,18 +1,28 @@
 package providers
 
 import (
+	"errors"
 	"log/slog"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/erykksc/chatreply/internal/configuration"
 )
 
-func CreateDiscord(token, userID string) Discord {
-	return Discord{
-		Token:           token,
-		UserID:          userID,
+func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
+	if conf.Discord.Token == "" {
+		return nil, errors.New("discord token not provided")
+	}
+
+	if conf.Discord.UserID == "" {
+		return nil, errors.New("discord user ID not provided")
+	}
+
+	return &Discord{
+		Token:           conf.Discord.Token,
+		UserID:          conf.Discord.UserID,
 		MessageChannel:  make(chan Message),
 		ReactionChannel: make(chan Reaction),
-	}
+	}, nil
 }
 
 type Discord struct {
