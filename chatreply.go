@@ -34,7 +34,7 @@ func init() {
 	flag.StringVar(&Separator, "s", ":", "Separator between message and emoji")
 	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
-	flag.BoolVar(&SkipReplies, "skip-replies", false, "Don't wait for replies, just send the messages")
+	flag.BoolVar(&SkipReplies, "skip-replies", false, "Do not wait for replies, just send the messages")
 	flag.StringVar(&WatchEmoji, "watch-emoji", "👀", "Emoji used to indicate the program is watching the message for a reply")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
