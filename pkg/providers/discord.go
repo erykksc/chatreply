@@ -45,8 +45,8 @@ func (d *Discord) Init() error {
 	d.s = session
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	d.s.AddHandler(d.messageCreate)
-	d.s.AddHandler(d.reactionAdd)
+	d.s.AddHandler(d.onMessageCreate)
+	d.s.AddHandler(d.onReactionAdd)
 
 	d.s.Identify.Intents = discordgo.IntentsGuildMessages |
 		discordgo.IntentsDirectMessages |
@@ -101,7 +101,7 @@ func (d *Discord) RemoveReaction(msgID, reaction string) error {
 	return err
 }
 
-func (d *Discord) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func (d *Discord) onMessageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	slog.Debug("message received", "message", m.Content)
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -122,7 +122,7 @@ func (d *Discord) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate
 	d.messageChannel <- msg
 }
 
-func (d *Discord) reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+func (d *Discord) onReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
 	slog.Debug("reaction added", "reaction", r.Emoji.Name)
 	// Skip if the reaction is from the bot
 	if r.UserID == s.State.User.ID {
