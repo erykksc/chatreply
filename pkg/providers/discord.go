@@ -3,6 +3,8 @@ package providers
 import (
 	"errors"
 	"log/slog"
+	"mime"
+	"path/filepath"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/erykksc/chatreply/pkg/configuration"
@@ -86,12 +88,31 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 }
 
 func (d *Discord) SendMessage(msg string, asText bool) (sentMsgID string, err error) {
-	m, err := d.s.ChannelMessageSend(d.UserChannel.ID, msg)
-	if err != nil {
-		return "", err
+	// Register handlers
+	handlers := make(map[string]func(text string) (sentMsgID string, err error))
+	handlers[""] = d.SendTextMessage
+
+	ext := filepath.Ext(msg)
+	contentType := mime.TypeByExtension(ext)
+	slog.Debug("contentType detected", "contentType", contentType)
+
+	handler, ok := handlers[contentType]
+	// Default fallback handler
+	if !ok {
+		slog.Debug("no handler found for content type, falling back to text", "contentType", contentType)
+		handler = d.SendTextMessage
 	}
-	return m.ID, nil
+	if asText {
+		slog.Debug("forcing text handler")
+		handler = d.SendTextMessage
+	}
+
+	// Use chosen handler
+	sentMsgID, err = handler(msg)
+
+	return sentMsgID, err
 }
+
 func (d *Discord) AddReaction(msgID, reaction string) error {
 	err := d.s.MessageReactionAdd(d.UserChannel.ID, msgID, reaction)
 	return err
