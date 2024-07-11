@@ -21,8 +21,6 @@ const WatchEmoji = "👀"
 
 // Variables used for command line parameters
 var (
-	Token        string
-	UserID       string
 	Separator    string
 	MsgSeparator string
 	OutSeparator string
@@ -30,8 +28,6 @@ var (
 )
 
 func init() {
-	flag.StringVar(&Token, "t", "", "Bot Token")
-	flag.StringVar(&UserID, "u", "", "User's discord ID")
 	flag.StringVar(&Separator, "s", ":", "Separator between message and emoji")
 	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
@@ -98,9 +94,15 @@ EventsLoop:
 	for len(unresolvedMsgs) > 0 {
 		select {
 		case msg := <-provider.ListenToMessages():
-			onNewMessage(provider, msg)
+			onReply(provider, Reply{
+				RefMsgID: msg.ReferencedMsgID,
+				Content:  msg.Content,
+			})
 		case reaction := <-provider.ListenToReactions():
-			onNewReaction(provider, reaction)
+			onReply(provider, Reply{
+				RefMsgID: reaction.MessageID,
+				Content:  reaction.Content,
+			})
 		case <-sc:
 			slog.Info("shutting down...")
 			break EventsLoop
@@ -113,45 +115,40 @@ EventsLoop:
 	}
 }
 
-func onNewMessage(_ providers.MsgProvider, msg providers.Message) {
-	slog.Debug("handling msg", "msg", msg.Content)
+type Reply struct {
+	RefMsgID string // ID of the message the reply was to
+	Content  string
+}
 
+func (r Reply) String() string {
+	return fmt.Sprintf("RefMsgID: %s, Content: %s", r.RefMsgID, r.Content)
+}
+
+// onReply is run when an unresolved message receives a response
+func onReply(p providers.MsgProvider, reply Reply) {
+	slog.Debug("handling reply", "reply", reply)
 	// Check if referenced
-	if msg.ReferencedMsgID == "" {
-		slog.Info("message does not reference another message, skipping", "messageID", msg.ID)
+	if reply.RefMsgID == "" {
+		slog.Info("message does not reference another message, skipping", "reply", reply)
 		return
 	}
-
-	// Get referenced message
-	refMsg, ok := unresolvedMsgs[msg.ReferencedMsgID]
+	unresolvedMsg, ok := unresolvedMsgs[reply.RefMsgID]
 	if !ok {
-		slog.Info("message not found in unresolved messages, skipping", "messageID", msg.ID)
+		slog.Info("message not found in unresolved messages, skipping", "reply", reply)
 		return
 	}
-
-	outputMsg(refMsg, msg.Content)
-}
-
-func onNewReaction(p providers.MsgProvider, r providers.Reaction) {
-	slog.Debug("handling r", "r", r.Content)
-	msg, ok := unresolvedMsgs[r.MessageID]
-	if !ok {
-		slog.Info("message not found in unresolved messages, skipping", "messageID", r.MessageID)
-		return
-	}
-
-	outputMsg(msg, r.Content)
-
-	p.RemoveReaction(r.MessageID, WatchEmoji)
-	delete(unresolvedMsgs, r.MessageID)
-}
-
-func outputMsg(originalMsg, reaction string) {
 	b := strings.Builder{}
-	b.WriteString(originalMsg)
+	b.WriteString(unresolvedMsg)
 	b.WriteString(Separator)
-	b.WriteString(reaction)
+	b.WriteString(reply.Content)
 	b.WriteString(OutSeparator)
 
 	fmt.Fprint(os.Stdout, b.String())
+
+	delete(unresolvedMsgs, reply.RefMsgID)
+
+	err := p.RemoveReaction(reply.RefMsgID, WatchEmoji)
+	if err != nil {
+		slog.Error("error removing reaction", "error", err, "messageID", reply.RefMsgID, "reaction", WatchEmoji)
+	}
 }
