@@ -44,3 +44,18 @@ You can also specify the path of the .toml config file as an argument
 ```shell
 go run chatreply.go -f "./config-file.toml"
 ```
+
+## Flags and arguments
+```bash
+❯ go run chatreply.go -h
+Usage of chatreply:
+  -f string
+        Filepath of the config .toml file (default "$XDG_CONFIG_HOME/chatreply/conf.toml")
+  -msg-sep string
+        Separator between messages (default "\n")
+  -out-sep string
+        Separator between output messages (default "\n")
+  -s string
+        Separator between message and emoji (default ":")
+  -v    Sets logging level to Debug
+```
