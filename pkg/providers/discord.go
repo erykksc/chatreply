@@ -85,7 +85,7 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 	return d.reactionChannel
 }
 
-func (d *Discord) SendMessage(msg string) (sentMsgID string, err error) {
+func (d *Discord) SendMessage(msg string, asText bool) (sentMsgID string, err error) {
 	m, err := d.s.ChannelMessageSend(d.UserChannel.ID, msg)
 	if err != nil {
 		return "", err

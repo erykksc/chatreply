@@ -20,7 +20,8 @@ type MsgProvider interface {
 	MessagesChannel() chan Message
 	// ReactionsChannel returns a channel with reactions of other users (not bot's own)
 	ReactionsChannel() chan Reaction
-	SendMessage(msg string) (sentMsgID string, err error)
+	// asText argument should make the message be sent as pure text, don't try to embed data
+	SendMessage(msg string, asText bool) (sentMsgID string, err error)
 	AddReaction(msgID, reaction string) error
 	RemoveReaction(msgID, reaction string) error
 }

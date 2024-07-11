@@ -25,6 +25,7 @@ var (
 	OutSeparator string
 	SkipReplies  bool
 	WatchEmoji   string
+	TextOnlyMsgs bool
 	Verbose      bool
 )
 
@@ -36,6 +37,7 @@ func init() {
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
 	flag.BoolVar(&SkipReplies, "skip-replies", false, "Do not wait for replies, just send the messages")
 	flag.StringVar(&WatchEmoji, "watch-emoji", "👀", "Emoji used to indicate the program is watching the message for a reply")
+	flag.BoolVar(&TextOnlyMsgs, "text-only", false, "Make all messages text only, disable trying to parse messages as multimedia")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
 
@@ -79,7 +81,7 @@ func main() {
 		if len(line) == 0 {
 			continue
 		}
-		msgID, err := provider.SendMessage(line)
+		msgID, err := provider.SendMessage(line, TextOnlyMsgs)
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
 		}
