@@ -79,7 +79,7 @@ func main() {
 		if len(line) == 0 {
 			continue
 		}
-		m, err := provider.SendMessage(line)
+		msgID, err := provider.SendMessage(line)
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
 		}
@@ -88,12 +88,12 @@ func main() {
 			continue
 		}
 
-		err = provider.AddReaction(m.ID, WatchEmoji)
+		err = provider.AddReaction(msgID, WatchEmoji)
 		if err != nil {
 			log.Fatalf("error adding reaction: %s", err)
 		}
 
-		unresolvedMsgs[m.ID] = line
+		unresolvedMsgs[msgID] = line
 	}
 
 	// Don't wait for replies if the flag is on
@@ -111,12 +111,12 @@ func main() {
 EventsLoop:
 	for len(unresolvedMsgs) > 0 {
 		select {
-		case msg := <-provider.ListenToMessages():
+		case msg := <-provider.MessagesChannel():
 			onReply(provider, Reply{
 				RefMsgID: msg.ReferencedMsgID,
 				Content:  msg.Content,
 			})
-		case reaction := <-provider.ListenToReactions():
+		case reaction := <-provider.ReactionsChannel():
 			onReply(provider, Reply{
 				RefMsgID: reaction.MessageID,
 				Content:  reaction.Content,

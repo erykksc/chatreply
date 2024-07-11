@@ -85,15 +85,12 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 	return d.reactionChannel
 }
 
-func (d *Discord) SendMessage(msg string) (sentMsg Message, err error) {
+func (d *Discord) SendMessage(msg string) (sentMsgID string, err error) {
 	m, err := d.s.ChannelMessageSend(d.UserChannel.ID, msg)
 	if err != nil {
-		return Message{}, err
+		return "", err
 	}
-	return Message{
-		ID:        m.ID,
-		ChannelID: m.ChannelID,
-	}, nil
+	return m.ID, nil
 }
 func (d *Discord) AddReaction(msgID, reaction string) error {
 	err := d.s.MessageReactionAdd(d.UserChannel.ID, msgID, reaction)

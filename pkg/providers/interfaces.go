@@ -20,7 +20,7 @@ type MsgProvider interface {
 	MessagesChannel() chan Message
 	// ReactionsChannel returns a channel with reactions of other users (not bot's own)
 	ReactionsChannel() chan Reaction
-	SendMessage(msg string) (sentMsg Message, err error)
+	SendMessage(msg string) (sentMsgID string, err error)
 	AddReaction(msgID, reaction string) error
 	RemoveReaction(msgID, reaction string) error
 }
