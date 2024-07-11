@@ -101,6 +101,8 @@ Usage of chatreply:
         Separator between messages (default "\n")
   -out-sep string
         Separator between output messages (default "\n")
+  -replies-count int
+        Number of replies to wait per message for before exiting, -1 will wait indefinitely, allowing multiple replies per message (default 1)
   -s string
         Separator between message and emoji (default ":")
   -skip-replies
