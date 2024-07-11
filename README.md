@@ -54,7 +54,7 @@ chatreply -f "./config-file.toml"
 ```
 
 ## Flags and arguments
-```bash
+```
 ❯ chatreply -h
 Usage of chatreply:
   -f string
@@ -66,6 +66,6 @@ Usage of chatreply:
   -s string
         Separator between message and emoji (default ":")
   -skip-replies
-        Don't wait for replies, just send the messages
+        Do not wait for replies, just send the messages
   -v    Sets logging level to Debug
 ```
