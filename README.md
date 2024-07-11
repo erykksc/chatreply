@@ -53,6 +53,29 @@ You can also specify the path of the .toml config file as an argument
 chatreply -f "./config-file.toml"
 ```
 
+## Multimedia support
+
+The tool will try to parse lines as multimide file paths. For example:
+```
+echo "./images/orange.png" | chatreply
+```
+
+will make __chatreply__ try to open "./images/orange.png" file and send it as an attachment to the chat.  
+On the output it will still be just text.
+
+| File Type | MIME Type                 | Discord |
+|-----------|---------------------------|:-------:|
+| JPEG      | image/jpeg                | ✅      |
+| PNG       | image/png                 | ✅      |
+| GIF       | image/gif                 | ✅      |
+| WebP      | image/webp                | ✅      |
+| ICO       | image/vnd.microsoft.icon  | ❌      |
+| SVG       | image/svg+xml             | ❌      |
+| TIFF      | image/tiff                | ❌      |
+| BMP       | image/bmp                 | ❌      |
+| HEIC      | image/heic                | ❌      |
+
+
 ## Flags and arguments
 ```
 ❯ chatreply -h
