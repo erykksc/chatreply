@@ -65,5 +65,7 @@ Usage of chatreply:
         Separator between output messages (default "\n")
   -s string
         Separator between message and emoji (default ":")
+  -skip-replies
+        Don't wait for replies, just send the messages
   -v    Sets logging level to Debug
 ```

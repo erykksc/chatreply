@@ -25,6 +25,7 @@ var (
 	Separator    string
 	MsgSeparator string
 	OutSeparator string
+	SkipReplies  bool
 	Verbose      bool
 )
 
@@ -34,6 +35,7 @@ func init() {
 	flag.StringVar(&Separator, "s", ":", "Separator between message and emoji")
 	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
+	flag.BoolVar(&SkipReplies, "skip-replies", false, "Don't wait for replies, just send the messages")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
 
@@ -81,12 +83,22 @@ func main() {
 		if err != nil {
 			log.Fatalf("error sending message: %s", err)
 		}
+
+		if SkipReplies {
+			continue
+		}
+
 		err = provider.AddReaction(m.ID, WatchEmoji)
 		if err != nil {
 			log.Fatalf("error adding reaction: %s", err)
 		}
 
 		unresolvedMsgs[m.ID] = line
+	}
+
+	// Don't wait for replies if the flag is on
+	if SkipReplies {
+		return
 	}
 
 	slog.Info("Bot is now running.  Press CTRL-C to exit.")
