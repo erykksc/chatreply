@@ -95,6 +95,8 @@ func (d *Discord) SendMessage(msg string, asString bool) (sentMsgID string, err 
 	handlers["image/png"] = d.SendImageMessage
 	handlers["image/gif"] = d.SendImageMessage
 	handlers["image/webp"] = d.SendImageMessage
+	handlers["text/plain"] = d.SendMessageWithFile
+	handlers["text/plain; charset=utf-8"] = d.SendMessageWithFile
 
 	ext := filepath.Ext(msg)
 	contentType := mime.TypeByExtension(ext)

@@ -88,6 +88,7 @@ CLI view
 | TIFF      | image/tiff                | ❌      |
 | BMP       | image/bmp                 | ❌      |
 | HEIC      | image/heic                | ❌      |
+| Text      | text/plain                | ✅      |
 
 
 ## Flags and arguments

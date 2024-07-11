@@ -17,6 +17,37 @@ func (d *Discord) SendStringHandler(text string) (sentMsgID string, err error) {
 	return m.ID, nil
 }
 
+func (d *Discord) SendMessageWithFile(path string) (sentMsgID string, err error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	baseName := filepath.Base(path)
+	reader := bufio.NewReader(file)
+
+	ext := filepath.Ext(path)
+	contentType := mime.TypeByExtension(ext)
+
+	msg, err := d.s.ChannelMessageSendComplex(d.UserChannel.ID,
+		&discordgo.MessageSend{
+			Content: path,
+			Files: []*discordgo.File{
+				{
+					Name:        baseName,
+					ContentType: contentType,
+					Reader:      reader,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	return msg.ID, nil
+}
+
 func (d *Discord) SendImageMessage(path string) (sentMsgID string, err error) {
 	file, err := os.Open(path)
 	if err != nil {
