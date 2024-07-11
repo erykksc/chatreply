@@ -17,8 +17,6 @@ import (
 	"github.com/erykksc/chatreply/pkg/utils"
 )
 
-const WatchEmoji = "👀"
-
 // Variables used for command line parameters
 var (
 	ConfigPath   string
@@ -26,6 +24,7 @@ var (
 	MsgSeparator string
 	OutSeparator string
 	SkipReplies  bool
+	WatchEmoji   string
 	Verbose      bool
 )
 
@@ -36,6 +35,7 @@ func init() {
 	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
 	flag.BoolVar(&SkipReplies, "skip-replies", false, "Don't wait for replies, just send the messages")
+	flag.StringVar(&WatchEmoji, "watch-emoji", "👀", "Emoji used to indicate the program is watching the message for a reply")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
 
