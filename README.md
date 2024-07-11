@@ -67,6 +67,8 @@ Usage of chatreply:
         Separator between message and emoji (default ":")
   -skip-replies
         Do not wait for replies, just send the messages
+  -text-only
+        Make all messages text only, disable trying to parse messages as multimedia
   -v    Sets logging level to Debug
   -watch-emoji string
         Emoji used to indicate the program is watching the message for a reply (default "👀")
