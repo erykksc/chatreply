@@ -32,7 +32,7 @@ You need to specify the providers and their configuration in
 The toml fields and syntax:
 
 ```toml
-ActiveProviders = ["discord"]
+ActiveProvider = "discord"
 
 [Discord]
 UserID = "<YOUR-USER-ID>"
