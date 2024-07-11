@@ -63,6 +63,18 @@ echo "./images/orange.png" | chatreply
 will make __chatreply__ try to open "./images/orange.png" file and send it as an attachment to the chat.  
 On the output it will still be just text.
 
+### Example
+Discord view
+
+![Discord with an open image](./readme-assets/image-discord.png)
+
+CLI view
+
+![Discord image cli output](./readme-assets/image-discord-output.png)
+
+
+### Supported file types
+
 | File Type | MIME Type                 | Discord |
 |-----------|---------------------------|:-------:|
 | JPEG      | image/jpeg                | ✅      |
