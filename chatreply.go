@@ -21,6 +21,7 @@ const WatchEmoji = "👀"
 
 // Variables used for command line parameters
 var (
+	ConfigPath   string
 	Separator    string
 	MsgSeparator string
 	OutSeparator string
@@ -28,11 +29,18 @@ var (
 )
 
 func init() {
+	defaultConfPath := "$XDG_CONFIG_HOME/chatreply/conf.toml"
+	flag.StringVar(&ConfigPath, "f", defaultConfPath, "Filepath of the config .toml file")
 	flag.StringVar(&Separator, "s", ":", "Separator between message and emoji")
 	flag.StringVar(&MsgSeparator, "msg-sep", "\n", "Separator between messages")
 	flag.StringVar(&OutSeparator, "out-sep", "\n", "Separator between output messages")
 	flag.BoolVar(&Verbose, "v", false, "Sets logging level to Debug")
 	flag.Parse()
+
+	if ConfigPath == defaultConfPath {
+		xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+		ConfigPath = filepath.Join(xdgConfigHome, "chatreply", "conf.toml")
+	}
 }
 
 var unresolvedMsgs = make(map[string]string)
@@ -48,9 +56,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &logOptions))
 	slog.SetDefault(logger)
 
-	xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
-	configPath := filepath.Join(xdgConfigHome, "chatreply", "conf.toml")
-	config, err := configuration.LoadConfiguration(configPath)
+	config, err := configuration.LoadConfiguration(ConfigPath)
 	if err != nil {
 		log.Fatalf("error loading configuration: %s", err)
 	}
