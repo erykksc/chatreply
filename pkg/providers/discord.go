@@ -22,8 +22,8 @@ func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
 	return &Discord{
 		Token:           conf.Discord.Token,
 		UserID:          conf.Discord.UserID,
-		MessageChannel:  make(chan Message),
-		ReactionChannel: make(chan Reaction),
+		messageChannel:  make(chan Message),
+		reactionChannel: make(chan Reaction),
 	}, nil
 }
 
@@ -31,8 +31,8 @@ func CreateDiscord(conf configuration.Configuration) (MsgProvider, error) {
 type Discord struct {
 	s               *discordgo.Session
 	UserChannel     *discordgo.Channel
-	MessageChannel  chan Message
-	ReactionChannel chan Reaction
+	messageChannel  chan Message
+	reactionChannel chan Reaction
 	Token           string
 	UserID          string
 }
@@ -72,17 +72,17 @@ func (d *Discord) Init() error {
 }
 
 func (d *Discord) Close() {
-	close(d.MessageChannel)
-	close(d.ReactionChannel)
+	close(d.messageChannel)
+	close(d.reactionChannel)
 	d.s.Close()
 }
 
-func (d *Discord) ListenToMessages() chan Message {
-	return d.MessageChannel
+func (d *Discord) MessagesChannel() chan Message {
+	return d.messageChannel
 }
 
-func (d *Discord) ListenToReactions() chan Reaction {
-	return d.ReactionChannel
+func (d *Discord) ReactionsChannel() chan Reaction {
+	return d.reactionChannel
 }
 
 func (d *Discord) SendMessage(msg string) (sentMsg Message, err error) {
@@ -122,7 +122,7 @@ func (d *Discord) messageCreate(s *discordgo.Session, m *discordgo.MessageCreate
 		Content:         m.Content,
 	}
 
-	d.MessageChannel <- msg
+	d.messageChannel <- msg
 }
 
 func (d *Discord) reactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
@@ -138,5 +138,5 @@ func (d *Discord) reactionAdd(s *discordgo.Session, r *discordgo.MessageReaction
 		Content:   r.Emoji.Name,
 	}
 
-	d.ReactionChannel <- reaction
+	d.reactionChannel <- reaction
 }
