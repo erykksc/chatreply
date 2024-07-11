@@ -1,7 +1,6 @@
 # ChatReply
 
 ## Example usage
-
 Run the command and pipe input into its _stdin_
 
 _Tip: By default the messages are splitted by newline character_  
@@ -24,6 +23,15 @@ And original messages including the replies are outputed to _stdout_ in real tim
 
 ![Cli output with reaction](./readme-assets/cli-output.png)
 
+## Installation
+You can install it using go
+
+```bash
+go install github.com/erykksc/chatreply
+```
+
+_Tip: Later on you can use this tool with "chatreply" command instead of "go run chatreply.go"_
+
 ## Configuration
 ### From .dotfiles
 You need to specify the providers and their configuration in
@@ -42,12 +50,12 @@ Token = "<YOUR-TOKEN>"
 ### Specify path
 You can also specify the path of the .toml config file as an argument
 ```shell
-go run chatreply.go -f "./config-file.toml"
+chatreply -f "./config-file.toml"
 ```
 
 ## Flags and arguments
 ```bash
-❯ go run chatreply.go -h
+❯ chatreply -h
 Usage of chatreply:
   -f string
         Filepath of the config .toml file (default "$XDG_CONFIG_HOME/chatreply/conf.toml")
