@@ -55,7 +55,7 @@ chatreply -f "./config-file.toml"
 
 ## Multimedia support
 
-The tool will try to parse lines as multimide file paths. For example:
+By default the tool will try to parse lines as file paths. For example:
 ```
 echo "./images/orange.png" | chatreply
 ```
@@ -73,22 +73,6 @@ Discord view
 CLI view
 
 ![Discord image cli output](./readme-assets/image-discord-output.png)
-
-
-### Supported file types
-
-| File Type | MIME Type                 | Discord |
-|-----------|---------------------------|:-------:|
-| JPEG      | image/jpeg                | ✅      |
-| PNG       | image/png                 | ✅      |
-| GIF       | image/gif                 | ✅      |
-| WebP      | image/webp                | ✅      |
-| ICO       | image/vnd.microsoft.icon  | ❌      |
-| SVG       | image/svg+xml             | ❌      |
-| TIFF      | image/tiff                | ❌      |
-| BMP       | image/bmp                 | ❌      |
-| HEIC      | image/heic                | ❌      |
-| Text      | text/plain                | ✅      |
 
 
 ## Flags and arguments

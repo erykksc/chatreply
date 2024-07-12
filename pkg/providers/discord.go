@@ -3,8 +3,7 @@ package providers
 import (
 	"errors"
 	"log/slog"
-	"mime"
-	"path/filepath"
+	"os"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/erykksc/chatreply/pkg/configuration"
@@ -87,36 +86,41 @@ func (d *Discord) ReactionsChannel() chan Reaction {
 	return d.reactionChannel
 }
 
+type MessageSendFunc func(text string) (sentMsgID string, err error)
+
 func (d *Discord) SendMessage(msg string, asString bool) (sentMsgID string, err error) {
-	// Register handlers
-	handlers := make(map[string]func(text string) (sentMsgID string, err error))
-	handlers[""] = d.SendStringHandler
-	handlers["image/jpeg"] = d.SendImageMessage
-	handlers["image/png"] = d.SendImageMessage
-	handlers["image/gif"] = d.SendImageMessage
-	handlers["image/webp"] = d.SendImageMessage
-	handlers["text/plain"] = d.SendMessageWithFile
-	handlers["text/plain; charset=utf-8"] = d.SendMessageWithFile
+	var sendFunc MessageSendFunc
 
-	ext := filepath.Ext(msg)
-	contentType := mime.TypeByExtension(ext)
-	slog.Debug("contentType detected", "contentType", contentType)
-
-	handler, ok := handlers[contentType]
-	// Default fallback handler
-	if !ok {
-		slog.Debug("no handler found for content type, falling back to text", "contentType", contentType)
-		handler = d.SendStringHandler
-	}
 	if asString {
-		slog.Debug("forcing string handler")
-		handler = d.SendStringHandler
+		slog.Debug("sending message as string (forced by argument)", "message", msg)
+		sendFunc = d.SendStringHandler
+	} else {
+		sendFunc = d.chooseMessageSendFunc(msg)
 	}
 
 	// Use chosen handler
-	sentMsgID, err = handler(msg)
+	sentMsgID, err = sendFunc(msg)
 
 	return sentMsgID, err
+}
+
+func (d *Discord) chooseMessageSendFunc(msg string) MessageSendFunc {
+	info, err := os.Stat(msg)
+
+	// If msg isn't a filepath
+	if err != nil {
+		slog.Debug("sending message as string (message isn't a filepath)", "message", msg)
+		return d.SendStringHandler
+	}
+
+	// Check if msg's filepath is a directory
+	if info.IsDir() {
+		slog.Debug("sending message as string (message is a directory path)", "message", msg)
+		return d.SendStringHandler
+	}
+
+	// It is a filepath and not a directory
+	return d.SendMessageWithFile
 }
 
 func (d *Discord) AddReaction(msgID, reaction string) error {
