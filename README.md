@@ -45,6 +45,10 @@ ActiveProvider = "discord"
 [Discord]
 UserID = "<YOUR-USER-ID>"
 Token = "<YOUR-TOKEN>"
+
+[Telegram]
+ChatID = "<YOUR-CHAT-ID>"
+Token = "<YOUR-API-TOKEN>"
 ```
 
 ### Specify path

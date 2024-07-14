@@ -85,6 +85,7 @@ func main() {
 
 	provider.Init()
 	defer provider.Close()
+	slog.Info("Provider initialized")
 
 	// Send messages and add watch reactions
 	scanner := bufio.NewScanner(os.Stdin)

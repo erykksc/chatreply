@@ -20,6 +20,7 @@ func CreateProvider(config configuration.Configuration) (MsgProvider, error) {
 
 	// Register all providers
 	providers["discord"] = CreateDiscord
+	providers["telegram"] = CreateTelegram
 
 	createProviderFunc, ok := providers[activeProvider]
 	if !ok {

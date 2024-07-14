@@ -14,6 +14,11 @@ type Configuration struct {
 		UserID string
 		Token  string
 	}
+
+	Telegram struct {
+		ChatID string
+		Token  string
+	}
 }
 
 // LoadConfiguration loads a configuration from a .toml file
