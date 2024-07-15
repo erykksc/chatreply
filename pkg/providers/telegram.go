@@ -35,7 +35,6 @@ type Telegram struct {
 }
 
 func (t *Telegram) Init() error {
-
 	opts := []bot.Option{
 		bot.WithAllowedUpdates(bot.AllowedUpdates{
 			"message",
@@ -48,7 +47,6 @@ func (t *Telegram) Init() error {
 	if err != nil {
 		return err
 	}
-
 	t.bot = b
 
 	slog.Debug("Starting Telegram bot")
@@ -68,9 +66,11 @@ func (t *Telegram) Close() {
 func (t *Telegram) MessagesChannel() chan Message {
 	return t.messageChannel
 }
+
 func (t *Telegram) ReactionsChannel() chan Reaction {
 	return t.reactionChannel
 }
+
 func (t *Telegram) SendMessage(msg string, asText bool) (sentMsgID string, err error) {
 	sentMsg, err := t.bot.SendMessage(t.context, &bot.SendMessageParams{
 		ChatID: t.ChatID,
@@ -82,6 +82,9 @@ func (t *Telegram) SendMessage(msg string, asText bool) (sentMsgID string, err e
 
 	return strconv.Itoa(sentMsg.ID), err
 }
+
+// NOTE: Telegram API doesn't support all emojis as reactions
+// https://core.telegram.org/bots/api#reactiontype
 func (t *Telegram) AddReaction(msgID, reaction string) error {
 	intMsgID, err := strconv.Atoi(msgID)
 	if err != nil {
@@ -102,6 +105,7 @@ func (t *Telegram) AddReaction(msgID, reaction string) error {
 	return err
 }
 func (t *Telegram) RemoveReaction(msgID, reaction string) error {
+	// At the moment telegram's API doesn' provide method for removing reactions
 	return errors.ErrUnsupported
 }
 
